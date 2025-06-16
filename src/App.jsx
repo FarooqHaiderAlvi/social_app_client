@@ -4,6 +4,7 @@ import SignUp from "./pages/SignUp";
 import Login from "./pages/Login";
 import Home from "./Components/Home";
 import ProtectedRoute from "./Components/ProtectedRoute";
+import Inbox from "./Components/Inbox";
 function App() {
   const user = useSelector((state) => state.auth.user);
 
@@ -15,6 +16,14 @@ function App() {
           element={
             <ProtectedRoute>
               <Home />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/inbox"
+          element={
+            <ProtectedRoute>
+              <Inbox />
             </ProtectedRoute>
           }
         />

@@ -1,9 +1,9 @@
 import { createSlice } from "@reduxjs/toolkit";
-import { loginUser, signupUser } from "./authThunk.js";
+import { loginUser, signupUser, fetchLoggedInUser } from "./authThunk.js";
 
 const initialState = {
   user: null,
-  loading: false,
+  isLoadingUser: true,
   error: null,
 };
 
@@ -13,37 +13,52 @@ const authSlice = createSlice({
   reducers: {
     logout: (state) => {
       state.user = null;
-      localStorage.removeItem("token"); // optional, depends on your flow
+      state.isLoadingUser = false;
     },
   },
   extraReducers: (builder) => {
     builder
-      // Login cases
+      // Login
       .addCase(loginUser.pending, (state) => {
-        state.loading = true;
+        state.isLoadingUser = true;
         state.error = null;
       })
       .addCase(loginUser.fulfilled, (state, action) => {
-        state.loading = false;
-        state.user = action.payload;
+        state.isLoadingUser = false;
+        console.log("Login payload:", action.payload.data.user); // Debugging line
+        state.user = action.payload.data.user;
       })
       .addCase(loginUser.rejected, (state, action) => {
-        state.loading = false;
+        state.isLoadingUser = false;
         state.error = action.payload;
       })
 
-      // Signup cases
+      // Signup
       .addCase(signupUser.pending, (state) => {
-        state.loading = true;
+        state.isLoadingUser = true;
         state.error = null;
       })
       .addCase(signupUser.fulfilled, (state, action) => {
-        state.loading = false;
+        state.isLoadingUser = false;
         state.user = action.payload;
       })
       .addCase(signupUser.rejected, (state, action) => {
-        state.loading = false;
+        state.isLoadingUser = false;
         state.error = action.payload;
+      })
+
+      // 🔁 Fetch Logged In User
+      .addCase(fetchLoggedInUser.pending, (state) => {
+        state.isLoadingUser = true;
+        state.error = null;
+      })
+      .addCase(fetchLoggedInUser.fulfilled, (state, action) => {
+        state.isLoadingUser = false;
+        state.user = action.payload;
+      })
+      .addCase(fetchLoggedInUser.rejected, (state) => {
+        state.isLoadingUser = false;
+        state.user = null; // clear user on error (e.g. not logged in)
       });
   },
 });

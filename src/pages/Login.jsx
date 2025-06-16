@@ -1,14 +1,30 @@
 import React from "react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { loginUser } from "../store/features/auth/authThunk";
+import { loginUser, fetchLoggedInUser } from "../store/features/auth/authThunk";
 import { useDispatch, useSelector } from "react-redux";
+import { Link } from "react-router-dom";
+import spinner from "../assets/Spinner2.gif";
 export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const { loading, error } = useSelector((state) => state.auth);
+  const { user, isLoadingUser } = useSelector((state) => state.auth);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (user) {
+      navigate("/"); // Redirect to home if logged in
+    }
+  }, [user, navigate]);
+
+  useEffect(() => {
+    if (user === null) {
+      dispatch(fetchLoggedInUser());
+    }
+  }, []);
+
   const handleOnChange = (e) => {
     switch (e.target.id) {
       case "email":
@@ -23,20 +39,38 @@ export default function Login() {
   };
 
   const handleLogIn = async (e) => {
+    setLoading(true);
     e.preventDefault();
     try {
-      const resultAction = await dispatch(loginUser({ email, password }));
+      const resultAction = dispatch(loginUser({ email, password }));
 
       // Check if login succeeded
       if (loginUser.fulfilled.match(resultAction)) {
+        console.log("Login successful:", resultAction.payload);
         navigate("/"); // redirect to home
       } else {
         console.error("Login failed:", resultAction.payload);
       }
     } catch (err) {
       console.error("Unexpected error:", err);
+    } finally {
+      setLoading(false);
     }
   };
+
+  console.log("User in Login:", isLoadingUser); // Debugging line
+  if (isLoadingUser) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-black text-white">
+        <img
+          src={spinner}
+          style={{ height: "100px", width: "100px" }}
+          alt="Loading..."
+          className="h-10 w-10"
+        />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-black py-12 px-4 text-white">
@@ -75,9 +109,14 @@ export default function Login() {
           />
           <button
             type="submit"
-            className="w-full bg-blue-500 text-white py-1.5 text-sm rounded-md hover:bg-blue-600 transition"
+            className="w-full bg-blue-500 text-white py-1.5 text-sm rounded-md hover:bg-blue-600 transition flex justify-center items-center h-[36px]"
+            disabled={loading}
           >
-            Log In
+            {loading ? (
+              <img src={spinner} alt="Loading..." className="h-6 w-6" />
+            ) : (
+              "Log In"
+            )}
           </button>
         </form>
 
@@ -92,9 +131,9 @@ export default function Login() {
       {/* Footer - Sign Up link */}
       <div className="max-w-sm w-full text-center text-sm text-gray-400 mt-4 border border-gray-700 p-4 rounded-md">
         Don't have an account?{" "}
-        <a href="#" className="text-blue-400 font-semibold">
+        <Link to="/signup" className="text-blue-400 font-semibold">
           Sign up
-        </a>
+        </Link>
       </div>
 
       {/* App Download Badges */}
