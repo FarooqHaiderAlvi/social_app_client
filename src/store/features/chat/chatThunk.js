@@ -45,6 +45,7 @@ export const sendChatMessage = createAsyncThunk(
       if (file) formData.append("attachment", file);
 
       const res = await axiosInstance.post("/messages/send-message", formData);
+      console.log("Message sent from frontEnd sendchatmessage:", res.data.data);
       return res.data.data;
     } catch (error) {
       return thunkAPI.rejectWithValue(

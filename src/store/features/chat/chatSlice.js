@@ -29,6 +29,36 @@ const chatSlice = createSlice({
       state.selectedUser = null;
       state.error = null;
     },
+    // Add these new reducers
+    addMessage: (state, action) => {
+      // Check if message already exists to prevent duplicates
+      const messageExists = state.messages.some(
+        (msg) => msg._id === action.payload._id
+      );
+
+      if (!messageExists) {
+        state.messages.push(action.payload);
+      }
+    },
+    addOptimisticMessage: (state, action) => {
+      // Add temporary message while waiting for server response
+      state.messages.push({
+        ...action.payload,
+        isOptimistic: true,
+      });
+    },
+    replaceOptimisticMessage: (state, action) => {
+      // Replace temporary message with real one from server
+      state.messages = state.messages.map((msg) =>
+        msg._id === action.payload.tempId ? action.payload.message : msg
+      );
+    },
+    removeOptimisticMessage: (state, action) => {
+      // Remove temporary message if sending failed
+      state.messages = state.messages.filter(
+        (msg) => msg._id !== action.payload
+      );
+    },
   },
   extraReducers: (builder) => {
     builder
@@ -64,7 +94,7 @@ const chatSlice = createSlice({
       })
       .addCase(sendChatMessage.fulfilled, (state, action) => {
         state.isSending = false;
-        state.messages.push(action.payload);
+        // Don't push here since we're handling it via optimistic updates
       })
       .addCase(sendChatMessage.rejected, (state, action) => {
         state.isSending = false;
@@ -73,6 +103,14 @@ const chatSlice = createSlice({
   },
 });
 
-export const { setSelectedUser, clearChatState } = chatSlice.actions;
+// Export all actions including the new ones
+export const {
+  setSelectedUser,
+  clearChatState,
+  addMessage,
+  addOptimisticMessage,
+  replaceOptimisticMessage,
+  removeOptimisticMessage,
+} = chatSlice.actions;
 
 export default chatSlice.reducer;

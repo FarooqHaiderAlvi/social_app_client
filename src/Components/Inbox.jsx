@@ -7,6 +7,7 @@ import {
   fetchUserMessages,
   sendChatMessage,
 } from "../store/features/chat/chatThunk.js";
+import { addMessage } from "../store/features/chat/chatSlice.js";
 
 export default function Inbox() {
   const dispatch = useDispatch();
@@ -15,28 +16,60 @@ export default function Inbox() {
   const [selectedUser, setSelectedUser] = useState(null);
   const [newMessage, setNewMessage] = useState("");
   const [onlineUsers, setOnlineUsers] = useState([]);
+  const [socketStatus, setSocketStatus] = useState("disconnected");
   const location = useLocation();
   const socket = useRef();
   const messagesEndRef = useRef(null);
 
   // Initialize Socket.IO connection
   useEffect(() => {
-    socket.current = io(`http://localhost:8000/`, {
+    console.log("[Socket.IO] Initializing connection...");
+
+    socket.current = io("http://localhost:8000", {
       withCredentials: true,
+      transports: ["websocket"],
+      reconnectionAttempts: 5,
+      reconnectionDelay: 1000,
+      query: {
+        userId: user?._id,
+      },
     });
 
+    // Connection events
     socket.current.on("connect", () => {
-      console.log("Connected to socket server");
+      console.log("[Socket.IO] Connected with ID:", socket.current.id);
+      setSocketStatus("connected");
+
+      if (user?._id) {
+        console.log("[Socket.IO] Joining user room:", user._id);
+        socket.current.emit("add-user", user._id);
+      }
     });
 
-    socket.current.on("disconnect", () => {
-      console.log("Disconnected from socket server");
+    socket.current.on("disconnect", (reason) => {
+      console.log("[Socket.IO] Disconnected:", reason);
+      setSocketStatus("disconnected");
     });
 
+    socket.current.on("connect_error", (err) => {
+      console.log("[Socket.IO] Connection error:", err);
+      setSocketStatus("error");
+    });
+
+    // Debug all incoming events
+    socket.current.onAny((event, ...args) => {
+      console.log(`[Socket.IO] Received event '${event}':`, args);
+    });
+
+    socket.current.on("getOnlineUsers", (userIds) => {
+      console.log("[Socket.IO] Online users received:", userIds);
+      setOnlineUsers(userIds);
+    });
     return () => {
+      console.log("[Socket.IO] Cleaning up connection");
       socket.current?.disconnect();
     };
-  }, []);
+  }, [user?._id]);
 
   // Add user to online list when logged in
   useEffect(() => {
@@ -47,24 +80,45 @@ export default function Inbox() {
 
   // Listen for new messages
   useEffect(() => {
+    if (!socket.current) return;
+
+    console.log("[Socket.IO] Setting up message listener...");
+
     const handleNewMessage = (data) => {
-      if (data.sender === selectedUser?._id || data.sender === user?._id) {
-        dispatch(fetchUserMessages(selectedUser._id));
+      console.log("[Socket.IO] Processing new message:", data);
+
+      // Normalize different data structures
+      const messageData = data.message || data;
+
+      // Verify message structure
+      if (!messageData._id || !messageData.senderId) {
+        console.warn("[Socket.IO] Invalid message format:", messageData);
+        return;
+      }
+
+      // Check if message is relevant to current chat
+      const isRelevant =
+        messageData.senderId === selectedUser?._id ||
+        messageData.receiverId === user?._id;
+
+      if (isRelevant) {
+        console.log("[Socket.IO] Adding relevant message to state");
+        dispatch(addMessage(messageData));
+      } else {
+        console.log("[Socket.IO] Message not relevant to current chat");
       }
     };
 
-    const handleOnlineUsers = (users) => {
-      setOnlineUsers(users);
-    };
+    // Remove previous listeners to avoid duplicates
+    socket.current.off("new-message", handleNewMessage);
 
-    socket.current?.on("new-message", handleNewMessage);
-    socket.current?.on("online-users", handleOnlineUsers);
+    // Add new listener
+    socket.current.on("new-message", handleNewMessage);
 
     return () => {
       socket.current?.off("new-message", handleNewMessage);
-      socket.current?.off("online-users", handleOnlineUsers);
     };
-  }, [selectedUser, dispatch, user]);
+  }, [selectedUser, user, dispatch]);
 
   // Scroll to bottom of messages
   useEffect(() => {
@@ -74,25 +128,33 @@ export default function Inbox() {
   const handleSendMessage = async () => {
     if (!newMessage.trim() || !selectedUser) return;
 
+    // Create temporary ID for optimistic update
+    const tempId = `temp-${Date.now()}`;
+    const optimisticMessage = {
+      _id: tempId,
+      senderId: user._id,
+      receiverId: selectedUser._id,
+      msgText: newMessage,
+      createdAt: new Date().toISOString(),
+      isOptimistic: true,
+    };
+
+    // Add to Redux immediately
+    dispatch(addMessage(optimisticMessage));
+    setNewMessage("");
+
     try {
-      const messageData = {
-        receiverId: selectedUser._id,
-        msgText: newMessage,
-      };
+      const result = await dispatch(
+        sendChatMessage({
+          receiverId: selectedUser._id,
+          msgText: newMessage,
+        })
+      ).unwrap();
 
-      // Send message via Redux thunk
-      const result = await dispatch(sendChatMessage(messageData)).unwrap();
-
-      // Emit socket event
-      socket.current?.emit("send-msg", {
-        to: selectedUser._id,
-        from: user._id,
-        message: result,
-      });
-
-      setNewMessage("");
+      console.log("[API] Message sent successfully:", result);
     } catch (error) {
-      console.error("Error sending message:", error);
+      console.error("[API] Failed to send message:", error);
+      // Optionally remove the optimistic message here
     }
   };
 
@@ -140,6 +202,7 @@ export default function Inbox() {
         </div>
 
         <div className="overflow-y-auto h-full pb-20">
+          {console.log(users, "Users in Inbox", "current user", user)}
           {users
             .filter((chatUser) => chatUser._id !== user?._id) // Filter out current user
             .map((chatUser) => (
@@ -174,7 +237,7 @@ export default function Inbox() {
                   </div>
                   <p className="text-gray-400 text-sm truncate">
                     {messages.find((m) => m.senderId === chatUser._id)
-                      ?.msgText || "No messages yet"}
+                      ?.msgText || "No messages yet2"}
                   </p>
                 </div>
               </div>
@@ -290,7 +353,10 @@ export default function Inbox() {
                   >
                     <p>{message.msgText}</p>
                     <p className="text-xs text-gray-300 mt-1 text-right">
-                      {new Date(message.createdAt).toLocaleTimeString([], {
+                      {new Date(message.createdAt).toLocaleString([], {
+                        day: "2-digit",
+                        month: "short", // or "2-digit" if you want numbers
+                        year: "numeric",
                         hour: "2-digit",
                         minute: "2-digit",
                       })}
@@ -300,7 +366,7 @@ export default function Inbox() {
               ))
             ) : (
               <div className="flex items-center justify-center h-full">
-                <p className="text-gray-400">No messages yet</p>
+                <p className="text-gray-400">No messages yet1</p>
               </div>
             )}
             <div ref={messagesEndRef} />
