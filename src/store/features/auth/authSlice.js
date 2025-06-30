@@ -1,6 +1,6 @@
 import { createSlice } from "@reduxjs/toolkit";
 import { loginUser, signupUser, fetchLoggedInUser } from "./authThunk.js";
-
+import { connectSocket } from "../../../service/socket-io.service.js";
 const initialState = {
   user: null,
   isLoadingUser: true,
@@ -27,6 +27,7 @@ const authSlice = createSlice({
         state.isLoadingUser = false;
         console.log("Login payload:", action.payload.data.user); // Debugging line
         state.user = action.payload.data.user;
+        connectSocket(state.user._id);
       })
       .addCase(loginUser.rejected, (state, action) => {
         state.isLoadingUser = false;
@@ -41,6 +42,7 @@ const authSlice = createSlice({
       .addCase(signupUser.fulfilled, (state, action) => {
         state.isLoadingUser = false;
         state.user = action.payload;
+        connectSocket(state.user.id);
       })
       .addCase(signupUser.rejected, (state, action) => {
         state.isLoadingUser = false;
@@ -55,6 +57,7 @@ const authSlice = createSlice({
       .addCase(fetchLoggedInUser.fulfilled, (state, action) => {
         state.isLoadingUser = false;
         state.user = action.payload;
+        connectSocket(state.user._id);
       })
       .addCase(fetchLoggedInUser.rejected, (state) => {
         state.isLoadingUser = false;

@@ -14,6 +14,8 @@ const initialState = {
   isMessagesLoading: false,
   isSending: false,
   error: null,
+  onlineUsers: [], // New state to track online users
+  selectedUser: null,
 };
 
 const chatSlice = createSlice({
@@ -58,6 +60,9 @@ const chatSlice = createSlice({
       state.messages = state.messages.filter(
         (msg) => msg._id !== action.payload
       );
+    },
+    setOnlineUsers: (state, action) => {
+      state.onlineUsers = action.payload;
     },
   },
   extraReducers: (builder) => {
@@ -111,6 +116,7 @@ export const {
   addOptimisticMessage,
   replaceOptimisticMessage,
   removeOptimisticMessage,
+  setOnlineUsers,
 } = chatSlice.actions;
 
 export default chatSlice.reducer;
