@@ -1,7 +1,6 @@
 import React from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { setSelectedUser } from "../store/features/chat/chatSlice";
-import { useEffect } from "react";
 export default function ChatSideBar() {
   const { users } = useSelector((state) => state.chat);
   const { user } = useSelector((state) => state.auth);

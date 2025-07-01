@@ -22,6 +22,7 @@ export const fetchUserMessages = createAsyncThunk(
   "chat/fetchUserMessages",
   async (chatPartnerId, thunkAPI) => {
     try {
+      console.log("Fetching messages for chat partner ID:", chatPartnerId);
       const res = await axiosInstance.post("/messages/user-messages", {
         chatPartnerId,
       });
@@ -37,15 +38,13 @@ export const fetchUserMessages = createAsyncThunk(
 // Send a message (text only or with file)
 export const sendChatMessage = createAsyncThunk(
   "chat/sendChatMessage",
-  async ({ receiverId, msgText, file }, thunkAPI) => {
+  async ({ formData, config }, thunkAPI) => {
     try {
-      const formData = new FormData();
-      formData.append("receiverId", receiverId);
-      if (msgText) formData.append("msgText", msgText);
-      if (file) formData.append("attachment", file);
-
-      const res = await axiosInstance.post("/messages/send-message", formData);
-      console.log("Message sent from frontEnd sendchatmessage:", res.data.data);
+      const res = await axiosInstance.post(
+        "/messages/send-message",
+        formData,
+        config
+      );
       return res.data.data;
     } catch (error) {
       return thunkAPI.rejectWithValue(

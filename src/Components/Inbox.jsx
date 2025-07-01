@@ -25,7 +25,7 @@ export default function Inbox() {
   // Initialize Socket.IO connection
   useEffect(() => {
     socket.on("getOnlineUsers", (userIds) => {
-      console.log("[Socket.IO] Online users received:", userIds);
+      // console.log("[Socket.IO] Online users received:", userIds);
       dispatch(setOnlineUsers(userIds));
     });
   }, [user?._id]);
@@ -39,10 +39,10 @@ export default function Inbox() {
 
   // Scroll to bottom of messages
   useEffect(() => {
-    console.log("[Inbox] Messages updated, scrolling to bottom");
+    // console.log("[Inbox] Messages updated, scrolling to bottom");
     if (messagesEndRef.current) {
       messagesEndRef.current.scrollIntoView({
-        behavior: "instant",
+        behavior: "smooth",
         block: "nearest", // Changed from default 'start' to 'nearest'
       });
     }
@@ -175,10 +175,32 @@ export default function Inbox() {
                     }`}
                   >
                     <p>{message.msgText}</p>
+                    {message.msgFile && (
+                      <div className="mt-2">
+                        <img
+                          src={message.msgFile}
+                          alt=""
+                          className="max-w-full h-auto rounded-lg"
+                          onLoad={() => {
+                            // Clean up blob URLs after real image loads
+                            if (message.isOptimistic && message.blobUrls) {
+                              message.blobUrls.forEach((url) =>
+                                URL.revokeObjectURL(url)
+                              );
+                            }
+                          }}
+                        />
+                        {message.isOptimistic && (
+                          <p className="text-xs text-gray-300 mt-1">
+                            Uploading...
+                          </p>
+                        )}
+                      </div>
+                    )}
                     <p className="text-xs text-gray-300 mt-1 text-right">
                       {new Date(message.createdAt).toLocaleString([], {
                         day: "2-digit",
-                        month: "short", // or "2-digit" if you want numbers
+                        month: "short",
                         year: "numeric",
                         hour: "2-digit",
                         minute: "2-digit",
