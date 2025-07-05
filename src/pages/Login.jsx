@@ -58,7 +58,9 @@ export default function Login() {
     }
   };
 
-  console.log("User in Login:", isLoadingUser); // Debugging line
+  // console.log("User in Login:", isLoadingUser);/
+  //
+  //  // Debugging line
   if (isLoadingUser) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-black text-white">

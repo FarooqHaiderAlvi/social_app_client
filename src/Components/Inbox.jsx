@@ -7,6 +7,7 @@ import ChatSideBar from "./ChatSideBar.jsx";
 import {
   setOnlineUsers,
   setSelectedUser,
+  addMessage,
 } from "../store/features/chat/chatSlice.js";
 import {
   fetchChatUsers,
@@ -24,18 +25,43 @@ export default function Inbox() {
 
   // Initialize Socket.IO connection
   useEffect(() => {
-    socket.on("getOnlineUsers", (userIds) => {
-      // console.log("[Socket.IO] Online users received:", userIds);
-      dispatch(setOnlineUsers(userIds));
-    });
-  }, [user?._id]);
+    if (!socket) return;
 
-  // Add user to online list when logged in
-  useEffect(() => {
-    if (user?._id) {
-      socket?.emit("add-user", user._id);
+    // Online users listener
+    const handleOnlineUsers = (userIds) => {
+      dispatch(setOnlineUsers(userIds));
+    };
+
+    // New message listener
+    const handleNewMessage = (data) => {
+      if (
+        data.message.senderId === selectedUser?._id ||
+        data.message.receiverId === user._id
+      ) {
+        dispatch(addMessage(data.message));
+        if (data.message.senderId === selectedUser?._id) {
+          setTimeout(() => {
+            messagesEndRef.current?.scrollIntoView({
+              behavior: "smooth",
+              block: "nearest",
+            });
+          }, 100);
+        }
+      }
+    };
+
+    socket.on("getOnlineUsers", handleOnlineUsers);
+    socket.on("new-message", handleNewMessage);
+
+    if (socket.connected) {
+      socket.emit("requestOnlineUsers");
     }
-  }, [user]);
+
+    return () => {
+      socket.off("getOnlineUsers", handleOnlineUsers);
+      socket.off("new-message", handleNewMessage);
+    };
+  }, [socket, dispatch, selectedUser?._id, user._id]);
 
   // Scroll to bottom of messages
   useEffect(() => {
@@ -49,6 +75,7 @@ export default function Inbox() {
   }, [messages]);
 
   useEffect(() => {
+    console.log(user._id, " selected user");
     dispatch(setSelectedUser(null));
   }, []);
 

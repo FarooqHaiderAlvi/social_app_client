@@ -21,7 +21,7 @@ const ProtectedRoute = ({ children }) => {
       </div>
     );
   }
-  console.log("User in ProtectedRoute:", user); // Debugging line
+  // console.log("User in ProtectedRoute:", user); // Debugging line
   return user ? children : <Navigate to="/login" />;
 };
 

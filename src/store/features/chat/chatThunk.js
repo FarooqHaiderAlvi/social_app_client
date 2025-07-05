@@ -40,6 +40,7 @@ export const sendChatMessage = createAsyncThunk(
   "chat/sendChatMessage",
   async ({ formData, config }, thunkAPI) => {
     try {
+      console.log("Sending message with formData:");
       const res = await axiosInstance.post(
         "/messages/send-message",
         formData,
