@@ -35,7 +35,7 @@ export const fetchLoggedInUser = createAsyncThunk(
   async (_, thunkAPI) => {
     try {
       const { data } = await axiosInstance.get("/users/get-user");
-      console.log("Fetched user data:", data.data); // Debugging line
+      // console.log("Fetched user data:", data.data); // Debugging line
       return data.data;
     } catch (error) {
       return thunkAPI.rejectWithValue("Not authenticated");

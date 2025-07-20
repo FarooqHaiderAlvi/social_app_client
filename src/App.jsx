@@ -6,6 +6,7 @@ import Login from "./pages/Login";
 import Home from "./Components/Home";
 import Inbox from "./Components/Inbox";
 import ProtectedRoute from "./Components/ProtectedRoute";
+import Notifications from "./Components/Notifications";
 import Layout from "./Components/Layout";
 function App() {
   const user = useSelector((state) => state.auth.user);
@@ -27,6 +28,7 @@ function App() {
         >
           <Route path="/" element={<Home />} />
           <Route path="/inbox" element={<Inbox />} />
+          <Route path="/notifications" element={<Notifications />} />
         </Route>
       </Routes>
     </BrowserRouter>

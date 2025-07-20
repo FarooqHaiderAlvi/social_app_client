@@ -1,152 +1,11 @@
 import React from "react";
 import { useSelector } from "react-redux";
 import { Link, useLocation, Outlet } from "react-router-dom";
-const Icons = {
-  Home: ({ active }) => (
-    <svg
-      aria-label="Home"
-      className={`w-6 h-6 ${active ? "text-white" : "text-gray-400"}`}
-      fill="currentColor"
-      viewBox="0 0 24 24"
-    >
-      <path
-        d={
-          active
-            ? "M22 23h-6.001a1 1 0 0 1-1-1v-5.455a2.997 2.997 0 1 0-5.993 0V22a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1V11.543a1.002 1.002 0 0 1 .31-.724l10-9.543a1.001 1.001 0 0 1 1.38 0l10 9.543a1.002 1.002 0 0 1 .31.724V22a1 1 0 0 1-1 1Z"
-            : "M9.005 16.545a2.997 2.997 0 0 1 2.997-2.997h0A2.997 2.997 0 0 1 15 16.545V22h7V11.543L12 2 2 11.543V22h7.005Z"
-        }
-        fill="none"
-        stroke="currentColor"
-        strokeLinejoin="round"
-        strokeWidth="2"
-      ></path>
-    </svg>
-  ),
-  Search: ({ active }) => (
-    <svg
-      aria-label="Search"
-      className={`w-6 h-6 ${active ? "text-white" : "text-gray-400"}`}
-      fill="currentColor"
-      viewBox="0 0 24 24"
-    >
-      <path
-        d="M19 10.5A8.5 8.5 0 1 1 10.5 2a8.5 8.5 0 0 1 8.5 8.5Z"
-        fill="none"
-        stroke="currentColor"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth="2"
-      ></path>
-      <line
-        fill="none"
-        stroke="currentColor"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth="2"
-        x1="16.511"
-        x2="22"
-        y1="16.511"
-        y2="22"
-      ></line>
-    </svg>
-  ),
-  Messages: ({ active }) => (
-    <svg
-      aria-label="Direct"
-      className={`w-6 h-6 ${active ? "text-white" : "text-gray-400"}`}
-      fill="currentColor"
-      viewBox="0 0 24 24"
-    >
-      <path
-        d={
-          active
-            ? "M22.5 2.5h-21a1 1 0 0 0-1 1v18a1 1 0 0 0 1 1h21a1 1 0 0 0 1-1v-18a1 1 0 0 0-1-1ZM12 7.5a4.5 4.5 0 1 1-4.5 4.5A4.5 4.5 0 0 1 12 7.5Z"
-            : "M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"
-        }
-        fill="none"
-        stroke="currentColor"
-        strokeLinejoin="round"
-        strokeWidth="2"
-      ></path>
-    </svg>
-  ),
-  Create: () => (
-    <svg
-      aria-label="New post"
-      className="w-6 h-6 text-gray-400"
-      fill="currentColor"
-      viewBox="0 0 24 24"
-    >
-      <path
-        d="M2 12v3.45c0 2.849.698 4.005 1.606 4.944.94.909 2.098 1.608 4.946 1.608h6.896c2.848 0 4.006-.7 4.946-1.608C21.302 19.455 22 18.3 22 15.45V8.552c0-2.849-.698-4.006-1.606-4.945C19.454 2.7 18.296 2 15.448 2H8.552c-2.848 0-4.006.699-4.946 1.607C2.698 4.547 2 5.703 2 8.552Z"
-        fill="none"
-        stroke="currentColor"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth="2"
-      ></path>
-      <line
-        fill="none"
-        stroke="currentColor"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth="2"
-        x1="6.545"
-        x2="17.455"
-        y1="12.001"
-        y2="12.001"
-      ></line>
-      <line
-        fill="none"
-        stroke="currentColor"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth="2"
-        x1="12.003"
-        x2="12.003"
-        y1="6.545"
-        y2="17.455"
-      ></line>
-    </svg>
-  ),
-  Profile: () => (
-    <svg
-      aria-label="Profile"
-      className="w-6 h-6 text-gray-400"
-      fill="currentColor"
-      viewBox="0 0 24 24"
-    >
-      <circle
-        cx="12"
-        cy="12"
-        fill="none"
-        r="11"
-        stroke="currentColor"
-        strokeWidth="2"
-      ></circle>
-      <path
-        d="M17.5 17.5A6.5 6.5 0 0 0 12 11a6.5 6.5 0 0 0-5.5 6.5"
-        fill="none"
-        stroke="currentColor"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth="2"
-      ></path>
-      <circle
-        cx="12"
-        cy="8"
-        fill="none"
-        r="3"
-        stroke="currentColor"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth="2"
-      ></circle>
-    </svg>
-  ),
-};
+import { Icons } from "../pages/NavIcons";
 export default function Layout() {
   const { user } = useSelector((state) => state.auth);
+  const { unreadCount } = useSelector((state) => state.notification);
+  const location = useLocation();
   return (
     <>
       <div
@@ -194,6 +53,20 @@ export default function Layout() {
           >
             <Icons.Messages active={location.pathname === "/messages"} />
             <span className="ml-3">Messages</span>
+          </Link>
+          <Link
+            to="/notifications"
+            className={`flex items-center p-3 rounded-lg ${
+              location.pathname === "/notifications"
+                ? "text-white"
+                : "text-gray-400"
+            }`}
+          >
+            <Icons.Notifications
+              active={location.pathname === "/notifications"}
+              unreadCount={unreadCount} // This will show the badge with "2"
+            />
+            <span className="ml-3">Notifications</span>
           </Link>
           <Link
             to="/create"

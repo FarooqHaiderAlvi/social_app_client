@@ -8,7 +8,7 @@ const ProtectedRoute = ({ children }) => {
   const { user, isLoadingUser } = useSelector((state) => state.auth);
 
   useEffect(() => {
-    console.log("useEffect triggered"); // Debugging line
+    // console.log("useEffect triggered"); // Debugging line
     if (user === null) {
       dispatch(fetchLoggedInUser());
     }

@@ -15,9 +15,9 @@ export const connectSocket = (userId) => {
     });
 
     socket.on("connect", () => {
-      console.log("[Socket.IO] Connected with ID:", socket.id);
+      // console.log("[Socket.IO] Connected with ID:", socket.id);
       if (userId) {
-        console.log("[Socket.IO] Joining user room:", userId);
+        // console.log("[Socket.IO] Joining user room:", userId);
         socket.emit("add-user", userId);
       }
     });
