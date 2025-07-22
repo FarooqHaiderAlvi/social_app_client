@@ -1,6 +1,11 @@
 import { useState } from "react";
 import { postComment } from "../api/comment.js"; // Adjust the import based on your API structure
+import { addUserLike } from "../api/like.js";
+import { useSelector, useDispatch } from "react-redux";
+import { updateNotificationCount } from "../store/features/notification/notificationSlice.js";
 export default function ShowPosts({ post }) {
+  const dispatch = useDispatch();
+  const [isLiked, setIsLiked] = useState(false);
   const addComment = async (postId) => {
     if (!comment.trim()) {
       return; // Prevent empty comments
@@ -8,10 +13,27 @@ export default function ShowPosts({ post }) {
     try {
       // Assuming you have an API endpoint to add comments
       const response = await postComment(postId, comment);
+      dispatch(updateNotificationCount());
       console.log("Comment added:", response.data);
+
       setComment("");
     } catch (error) {
       console.error("Error adding comment:", error);
+    }
+  };
+
+  const addLike = async (postId) => {
+    console.log("hit add like");
+    try {
+      setIsLiked(true);
+      // Assuming you have an API endpoint to add comments
+      const response = await addUserLike(postId);
+      // dispatch(updateNotificationCount());
+      console.log("Comment added:", response.data.isLiked);
+      setIsLiked(response.data.isLiked);
+    } catch (error) {
+      setIsLiked(false);
+      console.error("Error adding like comment:", error);
     }
   };
   const [comment, setComment] = useState("");
@@ -37,20 +59,37 @@ export default function ShowPosts({ post }) {
         {/* Post Actions */}
         <div className="p-3">
           <div className="flex space-x-4">
-            <button>
-              <svg
-                className="w-6 h-6 text-white"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
-                  d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
-                ></path>
-              </svg>
+            <button
+              className="hover:cursor-pointer"
+              onClick={() => addLike(post._id)}
+            >
+              {isLiked ? (
+                <svg
+                  aria-label="Unlike"
+                  className="w-6 h-6 text-red-500"
+                  fill="currentColor"
+                  viewBox="0 0 48 48"
+                  width="24"
+                  height="24"
+                >
+                  <title>Unlike</title>
+                  <path d="M34.6 3.1c-4.5 0-7.9 1.8-10.6 5.6-2.7-3.7-6.1-5.5-10.6-5.5C6 3.1 0 9.6 0 17.6c0 7.3 5.4 12 10.6 16.5.6.5 1.3 1.1 1.9 1.7l2.3 2c4.4 3.9 6.6 5.9 7.6 6.5.5.3 1.1.5 1.6.5s1.1-.2 1.6-.5c1-.6 2.8-2.2 7.8-6.8l2-1.8c.7-.6 1.3-1.2 2-1.7C42.7 29.6 48 25 48 17.6c0-8-6-14.5-13.4-14.5z"></path>
+                </svg>
+              ) : (
+                <svg
+                  className="w-6 h-6 text-white"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
+                    d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
+                  ></path>
+                </svg>
+              )}
             </button>
             <button>
               <svg

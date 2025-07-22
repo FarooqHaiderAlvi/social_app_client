@@ -49,17 +49,13 @@ export const Icons = {
   ),
   Messages: ({ active }) => (
     <svg
-      aria-label="Direct"
+      aria-label="inbox"
       className={`w-6 h-6 ${active ? "text-white" : "text-gray-400"}`}
       fill="currentColor"
       viewBox="0 0 24 24"
     >
       <path
-        d={
-          active
-            ? "M22.5 2.5h-21a1 1 0 0 0-1 1v18a1 1 0 0 0 1 1h21a1 1 0 0 0 1-1v-18a1 1 0 0 0-1-1ZM12 7.5a4.5 4.5 0 1 1-4.5 4.5A4.5 4.5 0 0 1 12 7.5Z"
-            : "M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"
-        }
+        d={"M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"}
         fill="none"
         stroke="currentColor"
         strokeLinejoin="round"

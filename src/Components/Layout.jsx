@@ -1,11 +1,17 @@
-import React from "react";
+import { useEffect } from "react";
 import { useSelector } from "react-redux";
 import { Link, useLocation, Outlet } from "react-router-dom";
 import { Icons } from "../pages/NavIcons";
+import { useDispatch } from "react-redux";
+import { fetchUserNotifications } from "../store/features/notification/notificationThunk.js";
 export default function Layout() {
   const { user } = useSelector((state) => state.auth);
   const { unreadCount } = useSelector((state) => state.notification);
+  const dispatch = useDispatch();
   const location = useLocation();
+  useEffect(() => {
+    dispatch(fetchUserNotifications());
+  }, [dispatch]);
   return (
     <>
       <div
@@ -48,10 +54,10 @@ export default function Layout() {
           <Link
             to="/inbox"
             className={`flex items-center p-3 rounded-lg ${
-              location.pathname === "/messages" ? "text-white" : "text-gray-400"
+              location.pathname === "/inbox" ? "text-white" : "text-gray-400"
             }`}
           >
-            <Icons.Messages active={location.pathname === "/messages"} />
+            <Icons.Messages active={location.pathname === "/inbox"} />
             <span className="ml-3">Messages</span>
           </Link>
           <Link

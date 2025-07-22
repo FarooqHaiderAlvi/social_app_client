@@ -12,7 +12,12 @@ const initialState = {
 const notificationSlice = createSlice({
   name: "notification",
   initialState,
-  reducers: {},
+  reducers: {
+    updateNotificationCount: (state, action) => {
+      console.log("updating notification count...");
+      state.unreadCount += 1;
+    },
+  },
   extraReducers: (builder) => {
     builder
       .addCase(fetchUserNotifications.pending, (state) => {
@@ -29,5 +34,6 @@ const notificationSlice = createSlice({
       });
   },
 });
+export const { updateNotificationCount } = notificationSlice.actions;
 
 export default notificationSlice.reducer;
