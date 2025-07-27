@@ -22,6 +22,7 @@ export default function MessageInput() {
     const validFiles = files.filter(
       (file) => file.type.startsWith("image/") || file.type.startsWith("video/")
     );
+    ``;
 
     if (validFiles.length) {
       setMediaFiles((prev) => [...prev, ...validFiles]);

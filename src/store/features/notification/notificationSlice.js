@@ -17,6 +17,19 @@ const notificationSlice = createSlice({
       console.log("updating notification count...");
       state.unreadCount += 1;
     },
+
+    updateNotification: (state, action) => {
+      console.log("inside dispatch", action.payload);
+      if (action.payload) {
+        const notificationExists = state.notifications.some(
+          (notification) => notification._id === action.payload._id
+        );
+        if (!notificationExists) {
+          state.notifications.unshift(action.payload);
+          state.unreadCount = state.notifications.length;
+        }
+      }
+    },
   },
   extraReducers: (builder) => {
     builder
@@ -34,6 +47,7 @@ const notificationSlice = createSlice({
       });
   },
 });
-export const { updateNotificationCount } = notificationSlice.actions;
+export const { updateNotificationCount, updateNotification } =
+  notificationSlice.actions;
 
 export default notificationSlice.reducer;

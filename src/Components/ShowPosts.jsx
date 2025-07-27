@@ -1,11 +1,18 @@
-import { useState } from "react";
-import { postComment } from "../api/comment.js"; // Adjust the import based on your API structure
-import { addUserLike } from "../api/like.js";
+import { useEffect, useState } from "react";
+import { postComment } from "../api/comment.js";
+import { addUserLike, getTotalLikes, hasUserLikedPost } from "../api/like.js";
 import { useSelector, useDispatch } from "react-redux";
-import { updateNotificationCount } from "../store/features/notification/notificationSlice.js";
+import {
+  updateNotificationCount,
+  updateNotification,
+} from "../store/features/notification/notificationSlice.js";
+import { getSocket } from "../service/socket-io.service.js";
 export default function ShowPosts({ post }) {
+  const { user } = useSelector((state) => state.auth);
   const dispatch = useDispatch();
   const [isLiked, setIsLiked] = useState(false);
+  const [totalLikes, setTotalLikes] = useState(post.totalLikes);
+  const socket = getSocket();
   const addComment = async (postId) => {
     if (!comment.trim()) {
       return; // Prevent empty comments
@@ -13,7 +20,7 @@ export default function ShowPosts({ post }) {
     try {
       // Assuming you have an API endpoint to add comments
       const response = await postComment(postId, comment);
-      dispatch(updateNotificationCount());
+      // dispatch(updateNotificationCount());
       console.log("Comment added:", response.data);
 
       setComment("");
@@ -22,6 +29,18 @@ export default function ShowPosts({ post }) {
     }
   };
 
+  useEffect(() => {
+    (async () => {
+      try {
+        const response = await hasUserLikedPost(post._id);
+        console.log(response.data.isLiked, "king");
+        setIsLiked(response.data.isLiked);
+      } catch (error) {
+        console.error(error);
+      }
+    })();
+  }, []);
+
   const addLike = async (postId) => {
     console.log("hit add like");
     try {
@@ -29,8 +48,14 @@ export default function ShowPosts({ post }) {
       // Assuming you have an API endpoint to add comments
       const response = await addUserLike(postId);
       // dispatch(updateNotificationCount());
-      console.log("Comment added:", response.data.isLiked);
+      console.log("like added", response.data, response.data.isLiked);
       setIsLiked(response.data.isLiked);
+      setTotalLikes(response.data.likeCount);
+      // if (!socket) {
+      //   return;
+      // } else {
+      //   socket.emit("likeEventOccurs");
+      // }
     } catch (error) {
       setIsLiked(false);
       console.error("Error adding like comment:", error);
@@ -139,7 +164,7 @@ export default function ShowPosts({ post }) {
           </div>
 
           <div className="mt-2 font-semibold text-white">
-            {post.totalLikes} likes
+            {totalLikes} likes
           </div>
 
           <div className="mt-1 text-white">
@@ -163,7 +188,7 @@ export default function ShowPosts({ post }) {
             onChange={(e) => setComment(e.target.value)}
           />
           <button
-            className="text-blue-400 font-semibold"
+            className="text-blue-400 font-semibold hover:cursor-pointer"
             onClick={() => addComment(post._id)}
           >
             Post

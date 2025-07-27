@@ -3,15 +3,34 @@ import { useSelector } from "react-redux";
 import { Link, useLocation, Outlet } from "react-router-dom";
 import { Icons } from "../pages/NavIcons";
 import { useDispatch } from "react-redux";
+import { updateNotification } from "../store/features/notification/notificationSlice.js";
+import { getSocket } from "../service/socket-io.service.js";
 import { fetchUserNotifications } from "../store/features/notification/notificationThunk.js";
 export default function Layout() {
   const { user } = useSelector((state) => state.auth);
   const { unreadCount } = useSelector((state) => state.notification);
   const dispatch = useDispatch();
   const location = useLocation();
+  const socket = getSocket();
+
   useEffect(() => {
     dispatch(fetchUserNotifications());
   }, [dispatch]);
+
+  useEffect(() => {
+    if (!socket) return;
+    const handleLikeEvent = (data) => {
+      console.log("inside handleLikeEvent", data);
+      if (
+        (data?.notification?.sender._id === user._id ||
+          data?.notification?.receiver._id === user._id) &&
+        data.notification
+      ) {
+        dispatch(updateNotification(data.notification));
+      }
+    };
+    socket.on("new-notification", handleLikeEvent);
+  }, [socket, user._id, dispatch]);
   return (
     <>
       <div

@@ -1,20 +1,39 @@
 import spinner from "../assets/Spinner2.gif";
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-
 import { useSelector } from "react-redux";
-import { fetchUserNotifications } from "../store/features/notification/notificationThunk";
+
 export default function Notifications() {
-  // const [notifications, setNotifications] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const { notifications } = useSelector((state) => state.notification);
+  const { user } = useSelector((state) => state.auth); // Get current user
+
+  // Generate notification message based on type and user context
+  const getNotificationMessage = (notification) => {
+    const senderName = notification.sender?.username;
+    const isCurrentUserReceiver = notification.receiver?._id === user._id;
+
+    switch (notification.action) {
+      case "like":
+        return isCurrentUserReceiver
+          ? `${senderName} liked your post`
+          : `You liked ${notification.receiver?.username}'s post`;
+
+      case "comment":
+        return isCurrentUserReceiver
+          ? `${senderName} commented on your post`
+          : `You commented on ${notification.receiver?.username}'s post`;
+
+      case "follow":
+        return `${senderName} started following you`;
+
+      default:
+        return notification.action;
+    }
+  };
 
   useEffect(() => {
-    // Simulate loading
-    const timer = setTimeout(() => {
-      setIsLoading(false);
-    }, 800);
-
+    const timer = setTimeout(() => setIsLoading(false), 800);
     return () => clearTimeout(timer);
   }, []);
 
@@ -25,25 +44,20 @@ export default function Notifications() {
           src={spinner}
           style={{ height: "100px", width: "100px" }}
           alt="Loading..."
-          className="h-10 w-10"
         />
       </div>
     );
   }
+
   return (
-    <div className="max-w-2xl mx-auto p-4 bg-black bg-dark-800 text-white rounded-lg shadow-lg">
+    <div className="max-w-2xl mx-auto p-4 bg-black text-white">
       <motion.h1
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.3 }}
         className="text-2xl font-bold mb-6"
       >
-        Notifications{" "}
-        {/* {unreadCount > 0 && (
-          <span className="ml-2 bg-red-500 text-white text-sm rounded-full px-2 py-1">
-            {unreadCount} new
-          </span>
-        )} */}
+        Notifications
       </motion.h1>
 
       {isLoading ? (
@@ -76,38 +90,43 @@ export default function Notifications() {
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: 20 }}
                 transition={{ duration: 0.3 }}
-                className={`p-3 rounded-lg cursor-pointer transition-colors duration-200 ${
+                className={`flex items-center p-3 rounded-lg cursor-pointer transition-colors duration-200 ${
                   notification.isRead ? "bg-gray-900" : "bg-gray-800"
                 }`}
-                onClick={() => markAsRead(notification._id)}
               >
-                <div className="flex items-start space-x-3">
-                  <img
-                    src={notification.sender?.avatar}
-                    alt={notification.sender?.username}
-                    className="w-10 h-10 rounded-full object-cover"
-                  />
-                  <div className="flex-1">
-                    <div className="flex items-center">
-                      <span className="font-semibold">
-                        {notification.sender?.username}
-                      </span>
-                      <span className="mx-1">•</span>
+                {/* Avatar */}
+                <img
+                  src={
+                    notification.sender?.avatar ||
+                    "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_960_720.png"
+                  }
+                  alt={"no photo"}
+                  className="w-12 h-12 rounded-full object-cover mr-3"
+                />
 
-                      {!notification.isRead && (
-                        <span className="ml-2 inline-block w-2 h-2 rounded-full bg-blue-500"></span>
-                      )}
-                    </div>
-                    <p className="text-gray-300">{notification.action}</p>
-                  </div>
-                  {notification?.postPreview && (
-                    <img
-                      src={notification.postPreview}
-                      alt="Post preview"
-                      className="w-12 h-12 rounded-md object-cover"
-                    />
-                  )}
+                {/* Notification Text */}
+                <div className="flex-1">
+                  <p className="text-sm">
+                    {getNotificationMessage(notification)}
+                  </p>
+                  <p className="text-xs text-gray-400 mt-1">
+                    {new Date(notification.createdAt).toLocaleDateString(
+                      "en-US",
+                      {
+                        month: "long",
+                        day: "numeric",
+                      }
+                    )}
+                  </p>
                 </div>
+
+                {/* Post Preview (if available) */}
+                {notification.postId && (
+                  <div className="ml-4 w-14 h-14 bg-gray-700 rounded-md overflow-hidden">
+                    {/* You would replace this with actual post image */}
+                    <img src={notification.postUrl} />
+                  </div>
+                )}
               </motion.li>
             ))}
           </motion.ul>
