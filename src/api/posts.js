@@ -12,6 +12,16 @@ export const getAllPosts = async () => {
   }
 };
 
+export const createPost = async (formData) => {
+  try {
+    const response = await axiosInstance.post("/posts/createPost", formData);
+    console.log("response:", response);
+  } catch (err) {
+    console.error("Error uploading new post: ", err);
+    throw err;
+  }
+};
+
 export const addUserComment = async (postId, comment) => {
   try {
     const response = await axiosInstance.post(`/posts/${postId}/comments`, {

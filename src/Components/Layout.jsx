@@ -1,15 +1,18 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
-import { Link, useLocation, Outlet } from "react-router-dom";
+import { Link, useLocation, Outlet, useNavigate } from "react-router-dom";
 import { Icons } from "../pages/NavIcons";
 import { useDispatch } from "react-redux";
 import { updateNotification } from "../store/features/notification/notificationSlice.js";
 import { getSocket } from "../service/socket-io.service.js";
 import { fetchUserNotifications } from "../store/features/notification/notificationThunk.js";
+import CreatePostModal from "./CreatePostModal.jsx";
 export default function Layout() {
+  const [showCreateModal, setShowCreateModal] = useState(false);
   const { user } = useSelector((state) => state.auth);
   const { unreadCount } = useSelector((state) => state.notification);
   const dispatch = useDispatch();
+  const navigate = useNavigate();
   const location = useLocation();
   const socket = getSocket();
 
@@ -31,6 +34,16 @@ export default function Layout() {
     };
     socket.on("new-notification", handleLikeEvent);
   }, [socket, user._id, dispatch]);
+
+  const closeModal = () => {
+    setShowCreateModal(false);
+  };
+
+  const handleCreateClick = () => {
+    setShowCreateModal(true);
+    // Add current path to history so we can go back when modal closes
+    navigate(location.pathname, { state: { background: location } });
+  };
   return (
     <>
       <div
@@ -93,13 +106,13 @@ export default function Layout() {
             />
             <span className="ml-3">Notifications</span>
           </Link>
-          <Link
-            to="/create"
-            className="flex items-center p-3 rounded-lg text-gray-400"
+          <button
+            onClick={handleCreateClick}
+            className="flex items-center p-3 rounded-lg text-gray-400 w-full hover:text-white"
           >
             <Icons.Create />
             <span className="ml-3">Create</span>
-          </Link>
+          </button>
           <Link
             to="/profile"
             className="flex items-center p-3 rounded-lg text-gray-400"
@@ -128,6 +141,7 @@ export default function Layout() {
 
       <main className="flex-1 md:ml-64 pb-16 md:pb-0 overflow-y-auto">
         <Outlet /> {/* 👈 This is crucial! */}
+        {showCreateModal && <CreatePostModal onClose={closeModal} />}
       </main>
       {/* Mobile Bottom Navigation - Pure Black */}
       <div
@@ -140,9 +154,9 @@ export default function Layout() {
         <Link to="/search" className="p-2">
           <Icons.Search active={location.pathname === "/search"} />
         </Link>
-        <Link to="/create" className="p-2">
+        <button onClick={handleCreateClick} className="p-2">
           <Icons.Create />
-        </Link>
+        </button>
         <Link to="/messages" className="p-2">
           <Icons.Messages active={location.pathname === "/messages"} />
         </Link>
