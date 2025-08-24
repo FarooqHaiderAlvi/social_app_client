@@ -47,6 +47,20 @@ export default function Stories() {
     <>
       <div className="border border-gray-900 rounded-lg p-4 mb-4 overflow-x-auto">
         <div className="flex space-x-4">
+          <div className="flex flex-col items-center cursor-pointer">
+            <div className="w-16 h-16 rounded-full border-2 border-pink-500">
+              <div className="w-full h-full rounded-full bg-black flex items-center justify-center">
+                {/* Plus sign */}
+                <div className="relative w-6 h-6">
+                  <div className="absolute w-full h-0.5 bg-white top-1/2 transform -translate-y-1/2"></div>
+                  <div className="absolute h-full w-0.5 bg-white left-1/2 transform -translate-x-1/2"></div>
+                </div>
+              </div>
+            </div>
+            <span className="text-xs mt-1 truncate w-16 text-center text-gray-300">
+              {"Create"}
+            </span>
+          </div>
           {stories.map((story) => (
             <StoryCard
               key={story._id}
